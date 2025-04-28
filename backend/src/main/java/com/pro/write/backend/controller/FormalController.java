@@ -17,7 +17,7 @@ public class FormalController {
     @PostMapping("/generate")
     public String generateReply(
             @RequestParam("metaData") String metaData,
-            @RequestParam("resumeFile") MultipartFile resumeFile) throws Exception {
+            @RequestParam(value = "resumeFile", required = false) MultipartFile resumeFile) throws Exception {
 
         String response =formalService.formalReply(metaData,resumeFile);
         return response;

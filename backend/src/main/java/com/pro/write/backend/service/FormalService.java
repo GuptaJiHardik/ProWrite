@@ -30,7 +30,13 @@ public class FormalService {
     }
 
     public String formalReply(String metaData,MultipartFile resumeFile) throws Exception {
-        String resumeText = extractTextFromPdf(resumeFile);
+        String resumeText = "";
+
+        if (resumeFile != null && !resumeFile.isEmpty()) {
+            resumeText = extractTextFromPdf(resumeFile);
+        } else {
+            resumeText = "No resume provided.";
+        }
         String prompt = prompt(metaData,resumeText);
 
 
