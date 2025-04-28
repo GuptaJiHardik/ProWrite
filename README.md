@@ -41,7 +41,7 @@ chrome-extension/
 - **icons/** – Extension logos and images.
 
 ---
-
+```
 backend/
 ├── src/
 │ ├── main/
@@ -135,13 +135,13 @@ Backend will start at `http://localhost:8085`.
 
 ### 🌟 Extension Popup (Light Mode)
 
-![Extension Light Mode](./image_2025-04-28_18-15-32.png)
+![Extension Light Mode](./chrome-extension/img/DarkMode.png)
 
 ---
 
 ### 🌙 Extension Popup (Dark Mode)
 
-![Extension Dark Mode](./image_2025-04-28_18-14-57.png)
+![Extension Dark Mode](./chrome-extension/img/LightMode.png)
 
 ---
 
