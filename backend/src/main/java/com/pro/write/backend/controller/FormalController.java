@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/text")
 public class FormalController {
@@ -17,15 +18,7 @@ public class FormalController {
     }
 
     @PostMapping("/generate")
-    public String generateReply(
-            @RequestParam("userId") String userId,
-            @RequestParam("metaData") String metaData,
-            @RequestParam(value = "resumeFile", required = false) MultipartFile resumeFile
-    ) throws Exception {
-
-        String response = formalService.formalReply(userId, metaData, resumeFile);
-        return response;
-    }public ResponseEntity<String> formalReply(
+    public ResponseEntity<String> generateReply(
             @RequestParam String userId,
             @RequestParam String metaData,
             @RequestParam(required = false) MultipartFile resumeFile) {
@@ -36,4 +29,5 @@ public class FormalController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
+
 }
