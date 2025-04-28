@@ -2,6 +2,7 @@ package com.pro.write.backend.controller;
 
 import org.springframework.web.bind.annotation.*;
 import com.pro.write.backend.service.FormalService;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/text")
@@ -14,7 +15,11 @@ public class FormalController {
     }
 
     @PostMapping("/generate")
-    public String generateReply(@RequestBody String metaData) {
-        return formalService.formalReply(metaData);
+    public String generateReply(
+            @RequestParam("metaData") String metaData,
+            @RequestParam("resumeFile") MultipartFile resumeFile) throws Exception {
+
+        String response =formalService.formalReply(metaData,resumeFile);
+        return response;
     }
 }

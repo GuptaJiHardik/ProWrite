@@ -2,8 +2,11 @@ package com.pro.write.backend.service;
 
 import java.util.Map;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -26,8 +29,10 @@ public class FormalService {
         this.webClient = webClientBuilder.build();
     }
 
-    public String formalReply(String metaData) {
-        String prompt = prompt(metaData);
+    public String formalReply(String metaData,MultipartFile resumeFile) throws Exception {
+        String resumeText = extractTextFromPdf(resumeFile);
+        String prompt = prompt(metaData,resumeText);
+
 
         Map<String, Object> requestBody = Map.of(
                 "contents", new Object[]{
@@ -56,12 +61,19 @@ public class FormalService {
 
         return extractResponseContent(response);
     }
+    private String extractTextFromPdf(MultipartFile pdfFile) throws Exception {
+        try (PDDocument document = PDDocument.load(pdfFile.getInputStream())) {
+            PDFTextStripper pdfStripper = new PDFTextStripper();
+            return pdfStripper.getText(document);
+        }
+    }
 
-    private String prompt(String metaData) {
+    private String prompt(String metaData,String resumeText) {
         StringBuilder str = new StringBuilder();
         str.append("Please generate a formal and professional reply to the following message. Maintain a polite, respectful tone and ensure clarity and conciseness. ");
         str.append("Do not include a subject line.\n\n");
-        str.append("Message Type:\n").append(metaData);
+        str.append("Input text: ").append("Message Type:\n").append(metaData).append("\n\n");
+        str.append("Resume text: ").append(resumeText).append("\n\n");
 
         return str.toString();
     }
