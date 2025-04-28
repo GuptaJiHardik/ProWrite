@@ -1,7 +1,9 @@
 package com.pro.write.backend.service;
 
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pro.write.backend.model.Resume;
+import com.pro.write.backend.repository.ResumeRepository;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,14 +12,14 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class FormalService {
 
     private final WebClient webClient;
+    private final ResumeRepository resumeRepository;
 
     @Value("${gemini.api.url}")
     private String geminiApiUrl;
@@ -25,20 +27,34 @@ public class FormalService {
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
-    public FormalService(WebClient.Builder webClientBuilder) {
+    public FormalService(WebClient.Builder webClientBuilder, ResumeRepository resumeRepository) {
         this.webClient = webClientBuilder.build();
+        this.resumeRepository = resumeRepository;
     }
 
-    public String formalReply(String metaData,MultipartFile resumeFile) throws Exception {
-        String resumeText = "";
+    public String formalReply(String userId, String metaData, MultipartFile resumeFile) throws Exception {
+        String resumeText = null;
 
         if (resumeFile != null && !resumeFile.isEmpty()) {
+            // new resume uploaded
             resumeText = extractTextFromPdf(resumeFile);
-        } else {
-            resumeText = "No resume provided.";
-        }
-        String prompt = prompt(metaData,resumeText);
 
+            // save or update resume in database
+            Resume resume = Resume.builder()
+                    .userId(userId)
+                    .resumeText(resumeText)
+                    .build();
+            resumeRepository.save(resume);
+        } else {
+            // no file uploaded -> try fetching saved resume
+            Optional<Resume> optionalResume = resumeRepository.findById(userId);
+            if (optionalResume.isPresent()) {
+                resumeText = optionalResume.get().getResumeText();
+            }
+            // else resumeText will stay null → handled below
+        }
+
+        String prompt = createPrompt(metaData, resumeText);
 
         Map<String, Object> requestBody = Map.of(
                 "contents", new Object[]{
@@ -67,19 +83,28 @@ public class FormalService {
 
         return extractResponseContent(response);
     }
+
     private String extractTextFromPdf(MultipartFile pdfFile) throws Exception {
         try (PDDocument document = PDDocument.load(pdfFile.getInputStream())) {
             PDFTextStripper pdfStripper = new PDFTextStripper();
-            return pdfStripper.getText(document);
+            String text = pdfStripper.getText(document);
+            System.out.println("Extracted PDF text: " + text);
+            return text;
         }
     }
 
-    private String prompt(String metaData,String resumeText) {
+
+    private String createPrompt(String metaData, String resumeText) {
         StringBuilder str = new StringBuilder();
         str.append("Please generate a formal and professional reply to the following message. Maintain a polite, respectful tone and ensure clarity and conciseness. ");
         str.append("Do not include a subject line.\n\n");
-        str.append("Input text: ").append("Message Type:\n").append(metaData).append("\n\n");
-        str.append("Resume text: ").append(resumeText).append("\n\n");
+        str.append("Input text: ").append(metaData).append("\n\n");
+
+        if (resumeText != null && !resumeText.isBlank()) {
+            str.append("Resume text: ").append(resumeText).append("\n\n");
+        } else {
+            str.append("Resume text: (No resume available)\n\n");
+        }
 
         return str.toString();
     }
