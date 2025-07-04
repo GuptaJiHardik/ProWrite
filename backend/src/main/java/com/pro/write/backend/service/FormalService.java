@@ -50,7 +50,6 @@ public class FormalService {
             if (optionalResume.isPresent()) {
                 resumeText = optionalResume.get().getResumeText();
             }
-            // else resumeText will stay null → handled below
         }
 
         String prompt = createPrompt(metaData, resumeText);
@@ -95,30 +94,40 @@ public class FormalService {
 
     private String createPrompt(String metaData, String resumeText) {
         StringBuilder str = new StringBuilder();
-        str.append("You are a professional writing assistant.\n");
-        str.append("Your task is to generate a formal, concise, and polished text based on the user's input.\n");
-        str.append("Strictly follow these rules:\n");
-        str.append("- Maintain a professional, respectful, and clear tone.\n");
-        str.append("- Assume the user is referring to themselves. Write from the user's perspective (first person).\n");
-        str.append("- Do not add greetings, thanks, or conclusions unless explicitly asked.\n");
-        str.append("- Do not include a subject line unless explicitly asked.\n");
-        str.append("- If the user does not specify the platform (LinkedIn, Email, Office), use a neutral professional tone that suits both Email and LinkedIn.\n");
-        str.append("- Match the tone, format, and length based on context if specified.\n");
-        str.append("- If resume details are provided, naturally incorporate relevant skills or experience if appropriate.\n");
-        str.append("- Do not fabricate or assume any information not given by the user.\n\n");
 
-        str.append("User Request: ").append(metaData).append("\n\n");
+        str.append("You are generating a formal, professional message from the user (me) to a recruiter who sent a job opportunity.\n\n");
+
+        str.append("🛠CONTEXT:\n");
+        str.append("- The user may have selected a job description, recruiter message, or role name as input (metaData).\n");
+        str.append("- Resume text may be provided for relevant experience and skills.\n\n");
+
+        str.append("INSTRUCTIONS:\n");
+        str.append("- Write in the first person (use 'I', 'my', not 'the user').\n");
+        str.append("- Start with a short greeting like 'Hi' or 'Dear'. Use 'Hi' if no recruiter name is mentioned.\n");
+        str.append("- Highlight only relevant experience from resume or projects.\n");
+        str.append("- Include tools, technologies, or projects if they match the job requirement.\n");
+        str.append("- If something is not known or weak (e.g., React), politely mention it.\n");
+        str.append("- Keep the tone confident, polite, and professional.\n");
+        str.append("- Avoid generic phrases, flattery, or excessive enthusiasm.\n");
+        str.append("- End with a short, polite call to action like: 'Let me know if you'd like to connect.'\n\n");
+
+        str.append("INPUT:\n");
+        str.append("Recruiter's Message or Role Info:\n");
+        str.append(metaData).append("\n\n");
 
         if (resumeText != null && !resumeText.isBlank()) {
-            str.append("Resume Text: ").append(resumeText).append("\n\n");
+            str.append("Resume Text:\n");
+            str.append(resumeText).append("\n\n");
         } else {
-            str.append("Resume Text: (No resume available)\n\n");
+            str.append("Resume Text: (No resume provided)\n\n");
         }
 
-
+        str.append("✍️ Generate the final reply below:\n");
 
         return str.toString();
     }
+
+
 
     private String extractResponseContent(String response) {
         try {
