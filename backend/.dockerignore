@@ -1,0 +1,6 @@
+target
+.git
+.gitignore
+README.md
+.mvn/wrapper/maven-wrapper.jar
+#inko use kara hai taaki docker faalu ka load na le container bana ne me

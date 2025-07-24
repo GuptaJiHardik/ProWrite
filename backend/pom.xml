@@ -116,6 +116,7 @@
                 </configuration>
             </plugin>
         </plugins>
+        <finalName>prowrite</finalName>
     </build>
 
 </project>
