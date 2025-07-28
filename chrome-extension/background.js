@@ -1,13 +1,17 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getSelectedText") {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.scripting.executeScript(
+      chrome.tabs.executeScript(
+        tabs[0].id,
         {
-          target: { tabId: tabs[0].id },
-          func: () => window.getSelection().toString(),
+          code: "window.getSelection().toString();"
         },
         (results) => {
-          sendResponse({ selectedText: results[0].result });
+          if (chrome.runtime.lastError || !results || results.length === 0) {
+            sendResponse({ selectedText: "" });
+          } else {
+            sendResponse({ selectedText: results[0] });
+          }
         }
       );
     });
